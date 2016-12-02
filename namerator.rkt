@@ -1,0 +1,153 @@
+#lang racket
+
+(require racket/random)
+;; phonemes sourced from: http://www.dyslexia-reading-well.com/44-phonemes-in-english.html
+
+;; alists of phonemes as symbols. Their value is a list of two lists;
+;; first,  a list of the phonemes common graphemes; second, a list of
+;; example words for pronounciation help.
+
+(define consonants '((/b/  . ((("b" "bb")
+                              ("bug" "bubble"))))
+                     (/d/ . ((("d" "dd")
+                             ("dad" "add" "milled"))))
+                     (/f/ . ((("f" "ff" "ph" "gh" "lf" "ft")
+                             ("fat" "cliff" "phone" "enough" "half" "often"))))
+                     (/g/ . ((("g" "gg" "gh" "gu" "gue")
+                             ("gun" "egg" "ghost" "guest" "prologue"))))
+                     (/h/ . ((("h" "wh")
+                             ("hop" "who"))))
+                     (/j/ . ((("j" "ge" "dge" "di" "gg")
+                             ("jam" "wage" "giraffe" "edge" "soldier" "exaggerate"))))
+                     (/k/ . ((("k" "c" "ch" "cc" "lk" "qu" "ck" "x")
+                             ("kit" "cat" "chris" "accent" "folk" "bouquet" "queen" "rack" "box"))))
+                     (/l/ . ((("l" "ll")
+                             ("live" "well"))))
+                     (/m/ . ((("m" "mm" "mb" "mn" "lm")
+                             ("man" "summer" "comb" "column" "palm"))))
+                     (/n/ . ((("n" "nn" "kn" "gn" "pn")
+                             ("net" "funny" "know" "gnat" "pneumonic"))))
+                     (/p/ . ((("p" "pp")
+                             ("pin" "dippy"))))
+                     (/r/ . ((("r" "rr" "wr" "rh")
+                             ("run" "carrot" "wrench" "rhyme"))))
+                     (/s/ . ((("s" "ss" "c" "sc" "ps" "st" "ce" "se")
+                             ("sit" "less" "circle" "scene" "psycho" "listen" "pace" "course"))))
+                     (/t/ . ((("t" "tt" "th" "ed")
+                             ("tip" "matter" "thomas" "ripped"))))
+                     (/v/ . ((("v" "f" "ph" "ve")
+                             ("vine" "of" "stephen" "five"))))
+                     (/w/ . ((("w" "wh" "u" "o")
+                             ("wit" "why" "quick" "choir"))))
+                     (/y/ . ((("y" "i" "j")
+                             ("yes" "onion" "hallelujah"))))
+                     (/z/ . ((("z" "zz" "s" "ss" "x" "ze" "se")
+                             ("zed" "buzz" "his" "scissors" "xylophone" "craze"))))
+
+                     ;; digraphs (a subset of consonants, I believe)
+                     (/zh/ . ((("s" "si" "z")
+                              ("treasure" "division" "azure"))))
+                     (/ch/ . ((("ch" "tch" "tu" "ti" "te")
+                              ("chip" "watch" "future" "action" "righteous"))))
+                     (/sh/ . ((("sh" "ce" "s" "ci" "si" "ch" "sci" "ti")
+                              ("sham" "ocean" "sure" "special" "pension" "machine" "conscience" "station"))))
+                     (/th/ . ((("th")
+                              ("thongs" "leather"))))
+                     (/ng/ . ((("ng" "n" "ngue")
+                              ("ring" "pink" "tongue"))))))
+
+(define vowels '((/a/ . ((("a" "ai" "au")
+                         ("cat" "plaid" "laugh"))))
+                 (/-a-/ . ((("a" "ai" "eigh" "aigh" "ay" "er" "et" "ei" "au" "ea" "ey")
+                           ("bay" "maid" "weigh" "straight" "pay" "foyer" "filet" "eight" "gauge" "mate" "break" "they")))) ;; also trailing e like a_e but we can't represent that
+                 (/e/ . ((("e" "ea" "u" "ie" "ai" "a" "eo" "ei" "ae" "ay")
+                         ("end" "bread" "bury" "friend" "said" "many" "leopard" "heifer" "aesthetic" "say"))))
+                 (/-e-/ . ((("e" "ee" "ea" "y" "ey" "oe" "ie" "i" "ei" "eo" "ay")
+                           ("be" "bee" "meat" "lady" "key" "phoenix" "grief" "ski" "deceive" "people" "quay"))))
+                 (/i/ . ((("i" "e" "o" "u" "ui" "y" "ie")
+                         ("it" "england" "women" "busy" "guild" "gym" "sieve"))))
+                 (/-i-/ . ((("i" "y" "igh" "ie" "uy" "ye" "ai" "is" "eigh")
+                           ("spider" "sky" "night" "pie" "guy" "stye" "aisle" "island" "height" "kite"))))
+                 (/o/ . ((("o" "a" "ho" "au" "aw" "ough")
+                         ("octopus" "swan" "honest" "maul" "slaw" "fought"))))
+                 (/-o-/ . ((("o" "oa" "oe" "ow" "ough" "eau" "oo" "ew")
+                           ("open" "moat" "bone" "toe" "sow" "dough" "beau" "brooch" "sew"))))
+                 (/oo/ . ((("o" "oo" "uou")
+                          ("wolf" "look" "bush" "would"))))
+                 (/u/ . ((("u" "o" "oo" "ou")
+                         ("lug" "monkey" "blood" "double"))))
+                 (/-u-/ . ((("o" "oo" "ew" "ue" "oe" "ough" "ui" "oew" "ou")
+                           ("who" "loon" "dew" "blue" "flute" "shoe" "through" "fruit" "manoeuvre" "group"))))
+                 (/y//.u./ . ((("u" "you" "ew" "iew" "yu" "ul" "eue" "eau" "ieu" "eu")
+                              ("unit" "you" "knew" "view" "yule" "mule" "queue" "beauty" "adieu" "feud"))))
+                 (/oi/ . ((("oi" "oy" "uoy")
+                          ("join" "boy" "buoy"))))
+                 (/ow/ . ((("ow" "ou" "ough")
+                          ("now" "shout" "bough"))))
+                 (schwa . ((("a" "er" "i" "ar" "our" "or" "e" "ur" "re" "eur")
+                           ("about" "ladder" "pencil" "dollar" "honour" "doctor" "ticket" "augur" "centre" "chauffeur"))))))
+
+;; (print vowels)
+
+(random-seed (integer-bytes->integer (crypto-random-bytes 2) #f))
+
+(define vowel-phoneme (random-ref vowels))
+
+;; (newline)
+;; (println vowel-phoneme)
+
+;; (println "")
+;; (println (car (cdr vowel-phoneme)))
+;;
+;; (println "")
+;; (println (cdr vowel-phoneme))
+;;
+;; (println "")
+;; (println (caadr vowel-phoneme))
+
+(define vowel-grapheme (random-ref (caadr vowel-phoneme)))
+
+;; (newline)
+;; (println vowel-grapheme)
+
+(define random-phonemes (map (lambda (i)
+                                (let ([phoneme-type (if (even? i) consonants vowels)])
+                                  (random-ref phoneme-type)))
+                              (range (random 2 8))))
+
+(newline)
+(println random-phonemes)
+
+(displayln "Phonemes:")
+(for-each (lambda (phoneme)
+            (display (car phoneme))
+            (display " "))
+          random-phonemes)
+(newline)
+(newline)
+
+(displayln "Phoneme pronounciations:")
+(for-each (lambda (phoneme)
+            (display (car phoneme))
+            (display "\t|\t")
+            (write (cadadr phoneme))
+            (newline))
+          random-phonemes)
+(newline)
+(newline)
+
+(define random-graphemes (map (lambda (phoneme)
+                                (caadr phoneme))
+                              random-phonemes))
+(displayln random-graphemes)
+
+(define (generate-spellings grapheme-options)
+  (reverse (let mash-em-up ([built-list '()]
+                            [options grapheme-options])
+             (cond
+               [(empty? built-list)
+                (mash-em-up built-list grapheme-options)]))
+           ))
+
+(displayln "Possible spellings:")
+(newline)
