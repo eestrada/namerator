@@ -87,60 +87,37 @@
                  (schwa ("a" "er" "i" "ar" "our" "or" "e" "ur" "re" "eur")
                         ("about" "ladder" "pencil" "dollar" "honour" "doctor" "ticket" "augur" "centre" "chauffeur"))))
 
-;; (print vowels)
 
-(random-seed (integer-bytes->integer (crypto-random-bytes 2) #f))
+(define (generate-random-phonemes)
+  (map (lambda (i)
+         (let ([phoneme-type (if (even? i) consonants vowels)])
+           (random-ref phoneme-type)))
+       (range (random 2 8))))
 
-(define vowel-phoneme (random-ref vowels))
+(define (display-phonemes phonemes)
+    (displayln "Phonemes:")
+    (for-each (lambda (phoneme)
+                (display (car phoneme))
+                (display " "))
+            phonemes)
+    (newline)
+    (newline))
 
-;; (newline)
-;; (println vowel-phoneme)
+(define (display-phoneme-pronounciations phonemes)
+    (displayln "Phoneme pronounciations:")
+    (for-each (lambda (phoneme)
+                (display (car phoneme))
+                (display "\t|\t")
+                (write (list-ref phoneme 2))
+                (newline))
+            phonemes)
+    (newline)
+    (newline))
 
-;; (println "")
-;; (println (car (cdr vowel-phoneme)))
-;;
-;; (println "")
-;; (println (cdr vowel-phoneme))
-;;
-;; (println "")
-;; (println (caadr vowel-phoneme))
-
-(define vowel-grapheme (random-ref (list-ref vowel-phoneme 1)))
-
-;; (newline)
-;; (println vowel-grapheme)
-
-(define random-phonemes (map (lambda (i)
-                                (let ([phoneme-type (if (even? i) consonants vowels)])
-                                  (random-ref phoneme-type)))
-                              (range (random 2 8))))
-
-(newline)
-(println random-phonemes)
-
-(displayln "Phonemes:")
-(for-each (lambda (phoneme)
-            (display (car phoneme))
-            (display " "))
-          random-phonemes)
-(newline)
-(newline)
-
-(displayln "Phoneme pronounciations:")
-(for-each (lambda (phoneme)
-            (display (car phoneme))
-            (display "\t|\t")
-            (write (list-ref phoneme 2))
-            (newline))
-          random-phonemes)
-(newline)
-(newline)
-
-(define random-graphemes (map (lambda (phoneme)
-                                (list-ref  phoneme 1))
-                              random-phonemes))
-(displayln random-graphemes)
-(newline)
+(define (extract-graphemes phonemes)
+  (map (lambda (phoneme)
+         (list-ref  phoneme 1))
+       phonemes))
 
 (define (generate-spellings grapheme-options)
   (reverse (let mash-em-up ([built-list '()]
