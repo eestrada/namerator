@@ -135,7 +135,8 @@
 (module+ main
   (define seed-value (integer-bytes->integer (crypto-random-bytes 2) #f))
   (random-seed seed-value)
-  (displayln seed-value)
+  (displayln (format "Random seed value: ~a" seed-value))
+  (newline)
   ;; (random-seed 5)
 
   (define random-phonemes (generate-random-phonemes))
