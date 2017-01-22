@@ -120,12 +120,14 @@
        phonemes))
 
 (define (generate-spellings grapheme-options)
-  (reverse (let mash-em-up ([built-list '()]
-                            [options grapheme-options])
-             (cond
-               [(empty? built-list)
-                (mash-em-up built-list grapheme-options)]))
-           ))
+  (define combinations (apply cartesian-product grapheme-options))
+  (map string-append* combinations))
 
-(displayln "Possible spellings:")
-(newline)
+(define (display-spellings spellings spelling-list-length)
+  (displayln "Possible Spellings:")
+  (let ([short-spellings (if (> (length spellings) spelling-list-length)
+                             (take spellings spelling-list-length)
+                             spellings)])
+    (for-each displayln short-spellings))
+  (newline)
+  (newline))
