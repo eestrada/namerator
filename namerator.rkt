@@ -131,3 +131,22 @@
     (for-each displayln short-spellings))
   (newline)
   (newline))
+
+(module+ main
+  (define seed-value (integer-bytes->integer (crypto-random-bytes 2) #f))
+  (random-seed seed-value)
+  (displayln seed-value)
+  ;; (random-seed 5)
+
+  (define random-phonemes (generate-random-phonemes))
+  ;; (newline)
+  ;; (println random-phonemes)
+
+  (display-phonemes random-phonemes)
+
+  (display-phoneme-pronounciations random-phonemes)
+
+  (define random-graphemes (extract-graphemes random-phonemes))
+
+  (define spellings (generate-spellings random-graphemes))
+  (display-spellings spellings 10))
